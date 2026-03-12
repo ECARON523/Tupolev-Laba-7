@@ -1,261 +1,358 @@
-(function() {
-    // ----- Элементы -----
-    const screens = document.querySelectorAll('.screen');
-    const navItems = document.querySelectorAll('.nav-item');
-    const body = document.body;
-
-    const themeToggle = document.getElementById('themeToggleBtn');
-    const photoInput = document.getElementById('photoInput');
-    const profilePhoto = document.getElementById('profilePhoto');
-    const changePhotoBtn = document.getElementById('changePhotoBtn');
-    
-    const nameDisplay = document.getElementById('nameDisplay');
-    const aboutDisplay = document.getElementById('aboutDisplay');
-    const birthDisplay = document.getElementById('birthDisplay');
-    const profileNameDisplay = document.getElementById('profileNameDisplay');
-    const nameInput = document.getElementById('nameInput');
-    const aboutInput = document.getElementById('aboutInput');
-    const birthInput = document.getElementById('birthInput');
-    const editBtn = document.getElementById('editProfileBtn');
-    const saveBtn = document.getElementById('saveProfileBtn');
-
-    const notesContainer = document.getElementById('notesContainer');
-    const showAddNoteBtn = document.getElementById('showAddNoteBtn');
-    const addNoteForm = document.getElementById('addNoteForm');
-    const noteTitle = document.getElementById('noteTitle');
-    const noteText = document.getElementById('noteText');
-    const saveNoteBtn = document.getElementById('saveNoteBtn');
-
-    const habitsContainer = document.getElementById('habitsContainer');
-    const showAddHabitBtn = document.getElementById('showAddHabitBtn');
-    const addHabitForm = document.getElementById('addHabitForm');
-    const habitName = document.getElementById('habitName');
-    const habitUnit = document.getElementById('habitUnit');
-    const habitDefaultValue = document.getElementById('habitDefaultValue');
-    const saveHabitBtn = document.getElementById('saveHabitBtn');
-    const saveProgressBtn = document.getElementById('saveProgressBtn');
-
-    const statStreak = document.getElementById('statStreak');
-    const statWater = document.getElementById('statWater');
-    const statNotes = document.getElementById('statNotes');
-    const statSport = document.getElementById('statSport');
-    const statReading = document.getElementById('statReading');
-    const statActions = document.getElementById('statActions');
-    const statsNotesContainer = document.getElementById('statsNotesContainer');
-    const calendarDays = document.querySelectorAll('.cal-day');
-    const selectedDayTitle = document.getElementById('selectedDayTitle');
-    const statsNoteInput = document.getElementById('statsNoteInput');
-    const addStatsNoteBtn = document.getElementById('addStatsNoteBtn');
-
-    // ----- Данные -----
-    let profile = { name: 'Иван Петров', about: 'Типа программист', birth: '30.03.1933' };
-    let notes = [
-        { id: Date.now() - 2000, title: 'Заголовок', text: 'Текст заметки...\n• Маркированный список', date: '18.02.2026' },
-        { id: Date.now() - 1000, title: 'Тест 1', text: '• пункт 1\n• пункт 2', date: '18.02.2026' }
-    ];
-    let habits = [
-        { id: 'water', name: '💧 Вода', unit: 'л', value: 0.5, emoji: '💧' },
-        { id: 'sport', name: '🏋️ Спорт', unit: 'мин', value: 10, emoji: '🏋️' },
-        { id: 'reading', name: '📖 Чтение', unit: 'мин', value: 1, emoji: '📖' }
-    ];
-
-    const dayStats = {
-        'Пн': { water: 1.2, sport: 25, reading: 15, notesCount: 2 },
-        'Вт': { water: 0.8, sport: 40, reading: 10, notesCount: 1 },
-        'Ср': { water: 1.5, sport: 30, reading: 20, notesCount: 3 },
-        'Чт': { water: 0.6, sport: 15, reading: 5, notesCount: 0 },
-        'Пт': { water: 2.0, sport: 45, reading: 25, notesCount: 4 },
-        'Сб': { water: 1.0, sport: 20, reading: 12, notesCount: 2 },
-        'Вс': { water: 0.7, sport: 10, reading: 8, notesCount: 1 }
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Инициализация данных и LocalStorage ---
+    const defaultData = {
+        profile: { name: 'Иван Петров', about: 'Люблю развиваться', birth: '10.05.1998', photo: '' },
+        theme: 'dark',
+        habits: [
+            { id: 'water', name: 'Вода', emoji: '💧', unit: 'л', goal: 2 },
+            { id: 'sport', name: 'Тренировка', emoji: '🏋️', unit: 'мин', goal: 30 },
+            { id: 'reading', name: 'Чтение', emoji: '📖', unit: 'мин', goal: 20 },
+            { id: 'sleep', name: 'Сон', emoji: '🌙', unit: 'ч', goal: 8 },      // НОВОЕ
+            { id: 'steps', name: 'Шаги', emoji: '🚶', unit: 'шт', goal: 10000 } // НОВОЕ
+        ],
+        notes: [], // { id, title, text, date (DD.MM.YYYY) }
+        history: {} // 'DD.MM.YYYY': { water: 1.5, sport: 15... }
     };
 
-    let selectedDay = '16.02.2026';
-    let selectedDayName = 'Пн';
+    let appData = JSON.parse(localStorage.getItem('mobi_data')) || defaultData;
+    let selectedDateStr = getTodayStr(); // Для статистики
 
-    // ----- Тема -----
-    themeToggle.addEventListener('click', () => {
-        if (body.classList.contains('dark-theme')) {
+    function saveData() {
+        localStorage.setItem('mobi_data', JSON.stringify(appData));
+    }
+
+    // --- Утилиты дат ---
+    function getTodayStr() {
+        return formatDate(new Date());
+    }
+
+    function formatDate(date) {
+        const d = String(date.getDate()).padStart(2, '0');
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const y = date.getFullYear();
+        return `${d}.${m}.${y}`;
+    }
+
+    function getShortDayName(date) {
+        const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+        return days[date.getDay()];
+    }
+
+    // Инициализируем сегодняшний день в истории
+    const todayStr = getTodayStr();
+    if (!appData.history[todayStr]) appData.history[todayStr] = {};
+
+    // --- DOM Элементы ---
+    const body = document.body;
+    const screens = document.querySelectorAll('.screen');
+    const navItems = document.querySelectorAll('.nav-item');
+
+    // --- Логика Тем ---
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    function applyTheme() {
+        if (appData.theme === 'light') {
             body.classList.replace('dark-theme', 'light-theme');
-            themeToggle.innerHTML = '☀️ Светлая тема';
+            themeToggleBtn.innerText = '🌙 Тёмная тема';
         } else {
             body.classList.replace('light-theme', 'dark-theme');
-            themeToggle.innerHTML = '🌙 Тёмная тема';
+            themeToggleBtn.innerText = '☀️ Светлая тема';
         }
+    }
+    themeToggleBtn.addEventListener('click', () => {
+        appData.theme = appData.theme === 'dark' ? 'light' : 'dark';
+        applyTheme();
+        saveData();
+    });
+    applyTheme();
+
+    // --- Навигация ---
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const screenId = item.dataset.screen;
+            screens.forEach(s => s.classList.remove('active'));
+            document.getElementById(`${screenId}-screen`).classList.add('active');
+            
+            navItems.forEach(n => n.classList.remove('active'));
+            item.classList.add('active');
+
+            // Обновляем данные при переходе
+            if (screenId === 'notes') renderNotes();
+            if (screenId === 'habits') renderHabits();
+            if (screenId === 'stats') {
+                selectedDateStr = getTodayStr(); // Сбрасываем на сегодня
+                renderCalendar();
+                renderStatsForDay(selectedDateStr);
+            }
+        });
     });
 
-    // ----- Фото -----
-    function triggerPhotoUpload() { photoInput.click(); }
-    changePhotoBtn.addEventListener('click', triggerPhotoUpload);
-    profilePhoto.addEventListener('click', triggerPhotoUpload);
-    photoInput.addEventListener('change', (e) => {
+    // --- ПРОФИЛЬ ---
+    const pPhoto = document.getElementById('profilePhoto');
+    const pPhotoInput = document.getElementById('photoInput');
+    
+    function renderProfile() {
+        document.getElementById('nameDisplay').innerText = appData.profile.name;
+        document.getElementById('aboutDisplay').innerText = appData.profile.about;
+        document.getElementById('birthDisplay').innerText = appData.profile.birth;
+        document.getElementById('profileNameDisplay').innerText = appData.profile.name;
+        
+        if (appData.profile.photo) {
+            pPhoto.innerHTML = `<img src="${appData.profile.photo}">`;
+        }
+    }
+
+    document.getElementById('editProfileBtn').addEventListener('click', () => {
+        document.getElementById('nameInput').value = appData.profile.name;
+        document.getElementById('aboutInput').value = appData.profile.about;
+        document.getElementById('birthInput').value = appData.profile.birth;
+        
+        document.querySelectorAll('.info-value').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.info-input').forEach(el => el.style.display = 'block');
+        
+        document.getElementById('editProfileBtn').style.display = 'none';
+        document.getElementById('saveProfileBtn').style.display = 'block';
+    });
+
+    document.getElementById('saveProfileBtn').addEventListener('click', () => {
+        appData.profile.name = document.getElementById('nameInput').value || 'Без имени';
+        appData.profile.about = document.getElementById('aboutInput').value;
+        appData.profile.birth = document.getElementById('birthInput').value;
+        saveData();
+        renderProfile();
+        
+        document.querySelectorAll('.info-value').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.info-input').forEach(el => el.style.display = 'none');
+        
+        document.getElementById('editProfileBtn').style.display = 'block';
+        document.getElementById('saveProfileBtn').style.display = 'none';
+    });
+
+    document.getElementById('changePhotoBtn').addEventListener('click', () => pPhotoInput.click());
+    pPhoto.addEventListener('click', () => pPhotoInput.click());
+    
+    pPhotoInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (event) => {
-                profilePhoto.innerHTML = `<img src="${event.target.result}">`;
+                appData.profile.photo = event.target.result;
+                saveData();
+                renderProfile();
             };
             reader.readAsDataURL(file);
         }
     });
+    renderProfile();
 
-    // ----- Профиль -----
-    function updateProfileDisplay() {
-        nameDisplay.innerText = profile.name;
-        aboutDisplay.innerText = profile.about;
-        birthDisplay.innerText = profile.birth;
-        profileNameDisplay.innerText = profile.name;
-    }
+    // --- ЗАМЕТКИ ---
+    const notesContainer = document.getElementById('notesContainer');
+    const addNoteForm = document.getElementById('addNoteForm');
 
-    editBtn.addEventListener('click', () => {
-        [nameDisplay, aboutDisplay, birthDisplay, editBtn].forEach(el => el.style.display = 'none');
-        [nameInput, aboutInput, birthInput, saveBtn].forEach(el => el.style.display = 'block');
-    });
+    document.getElementById('showAddNoteBtn').addEventListener('click', () => addNoteForm.style.display = 'block');
+    document.getElementById('cancelNoteBtn').addEventListener('click', () => addNoteForm.style.display = 'none');
 
-    saveBtn.addEventListener('click', () => {
-        profile.name = nameInput.value.trim() || profile.name;
-        profile.about = aboutInput.value.trim() || profile.about;
-        profile.birth = birthInput.value.trim() || profile.birth;
-        updateProfileDisplay();
-        [nameDisplay, aboutDisplay, birthDisplay, editBtn].forEach(el => el.style.display = 'block');
-        [nameInput, aboutInput, birthInput, saveBtn].forEach(el => el.style.display = 'none');
-    });
+    document.getElementById('saveNoteBtn').addEventListener('click', () => {
+        const title = document.getElementById('noteTitle').value.trim();
+        const text = document.getElementById('noteText').value.trim();
+        if (!text) return alert('Введите текст заметки!');
 
-    // ----- Заметки -----
-    function renderNotes() {
-        notesContainer.innerHTML = notes.map(note => `
-            <div class="note-card">
-                <div class="delete-note" onclick="deleteNote(${note.id})">✕</div>
-                <div class="note-title">${note.title}</div>
-                <div class="note-content">${note.text.replace(/\n/g, '<br>')}</div>
-                <div class="note-date">${note.date}</div>
-            </div>
-        `).join('');
-    }
-
-    window.deleteNote = function(id) {
-        notes = notes.filter(n => n.id !== id);
-        renderNotes();
-        renderStatsNotes();
-        updateStatsForSelectedDay();
-    };
-
-    showAddNoteBtn.addEventListener('click', () => addNoteForm.style.display = 'flex');
-
-    saveNoteBtn.addEventListener('click', () => {
-        notes.push({
-            id: Date.now(),
-            title: noteTitle.value.trim() || 'Без названия',
-            text: noteText.value.trim() || 'Пусто',
-            date: '18.02.2026'
-        });
-        renderNotes();
+        appData.notes.unshift({ id: Date.now(), title: title || 'Без названия', text, date: getTodayStr() });
+        saveData();
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteText').value = '';
         addNoteForm.style.display = 'none';
-        noteTitle.value = ''; noteText.value = '';
+        renderNotes();
     });
 
-    // ----- Привычки -----
+    function renderNotes() {
+        notesContainer.innerHTML = '';
+        if(appData.notes.length === 0) {
+            notesContainer.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:20px;">Нет заметок</p>';
+            return;
+        }
+        appData.notes.forEach(note => {
+            const card = document.createElement('div');
+            card.className = 'note-card';
+            card.innerHTML = `
+                <div class="delete-btn" data-id="${note.id}">✕</div>
+                <div class="note-title">${note.title}</div>
+                <div class="note-content">${note.text}</div>
+                <div class="note-date">${note.date}</div>
+            `;
+            card.querySelector('.delete-btn').addEventListener('click', () => {
+                appData.notes = appData.notes.filter(n => n.id !== note.id);
+                saveData(); renderNotes();
+            });
+            notesContainer.appendChild(card);
+        });
+    }
+
+    // --- ПРИВЫЧКИ (СЕГОДНЯ) ---
+    const habitsContainer = document.getElementById('habitsContainer');
+    const addHabitForm = document.getElementById('addHabitForm');
+    document.getElementById('todayDateDisplay').innerText = getTodayStr();
+
+    document.getElementById('showAddHabitBtn').addEventListener('click', () => addHabitForm.style.display = 'block');
+    document.getElementById('cancelHabitBtn').addEventListener('click', () => addHabitForm.style.display = 'none');
+
+    document.getElementById('saveHabitBtn').addEventListener('click', () => {
+        const name = document.getElementById('habitName').value.trim();
+        if (!name) return;
+        appData.habits.push({
+            id: 'h_' + Date.now(),
+            name: name,
+            emoji: document.getElementById('habitEmoji').value || '🎯',
+            unit: document.getElementById('habitUnit').value || 'раз',
+            goal: parseFloat(document.getElementById('habitGoal').value) || 1
+        });
+        saveData();
+        addHabitForm.style.display = 'none';
+        document.getElementById('habitName').value = '';
+        renderHabits();
+    });
+
     function renderHabits() {
-        habitsContainer.innerHTML = habits.map(habit => `
-            <div class="habit-item">
+        habitsContainer.innerHTML = '';
+        const todayData = appData.history[todayStr];
+
+        appData.habits.forEach(habit => {
+            const currentValue = todayData[habit.id] || 0;
+            const card = document.createElement('div');
+            card.className = 'habit-item';
+            card.innerHTML = `
+                <div class="delete-btn" data-id="${habit.id}" style="width:24px; height:24px; font-size:12px; top:10px; right:10px;">✕</div>
                 <div class="habit-title">${habit.emoji} ${habit.name}</div>
                 <div class="habit-stats">
-                    <span class="habit-value" id="habit-${habit.id}-value">${habit.value.toFixed(1)}</span>
-                    <span class="habit-unit">${habit.unit}</span>
+                    <span class="habit-value">${currentValue} <span class="habit-unit">${habit.unit}</span></span>
+                    <span class="habit-goal">Цель: ${habit.goal}</span>
                 </div>
                 <div class="habit-control">
-                    <input type="number" id="habit-${habit.id}-input" step="0.1" value="1">
-                    <button class="habit-plus" onclick="addHabitValue('${habit.id}')">+</button>
+                    <input type="number" id="input_${habit.id}" step="0.5" value="1" placeholder="+">
+                    <button class="habit-plus" data-id="${habit.id}">+</button>
                 </div>
-                <div class="delete-note" style="top:16px; right:16px;" onclick="deleteHabit('${habit.id}')">✕</div>
-            </div>
-        `).join('');
+            `;
+            
+            card.querySelector('.habit-plus').addEventListener('click', () => {
+                const addVal = parseFloat(document.getElementById(`input_${habit.id}`).value) || 0;
+                todayData[habit.id] = (todayData[habit.id] || 0) + addVal;
+                saveData();
+                renderHabits(); // Перерисовка с автосохранением!
+            });
+
+            card.querySelector('.delete-btn').addEventListener('click', () => {
+                if(confirm('Удалить цель?')) {
+                    appData.habits = appData.habits.filter(h => h.id !== habit.id);
+                    saveData(); renderHabits();
+                }
+            });
+
+            habitsContainer.appendChild(card);
+        });
     }
 
-    window.addHabitValue = function(id) {
-        const habit = habits.find(h => h.id === id);
-        const input = document.getElementById(`habit-${id}-input`);
-        habit.value += parseFloat(input.value) || 0;
-        renderHabits();
-        updateStatsForSelectedDay();
-    };
+    // --- СТАТИСТИКА И ПРОГРЕСС ---
+    const calendarWeek = document.getElementById('calendarWeek');
+    const statsGrid = document.getElementById('statsGrid');
+    const progressContainer = document.getElementById('progressContainer');
+    const statsNotesContainer = document.getElementById('statsNotesContainer');
 
-    window.deleteHabit = function(id) {
-        habits = habits.filter(h => h.id !== id);
-        renderHabits();
-    };
-
-    showAddHabitBtn.addEventListener('click', () => addHabitForm.style.display = 'flex');
-    saveHabitBtn.addEventListener('click', () => {
-        habits.push({
-            id: 'h' + Date.now(),
-            name: habitName.value,
-            unit: habitUnit.value,
-            value: parseFloat(habitDefaultValue.value),
-            emoji: '📌'
-        });
-        renderHabits();
-        addHabitForm.style.display = 'none';
-    });
-
-    // ----- Статистика -----
-    function updateStatsForSelectedDay() {
-        if (selectedDay === '18.02.2026') {
-            statWater.innerText = (habits.find(h => h.id === 'water')?.value || 0).toFixed(1);
-            statNotes.innerText = notes.filter(n => n.date === '18.02.2026').length;
-        } else {
-            const s = dayStats[selectedDayName] || { water: 0, notesCount: 0, sport: 0, reading: 0 };
-            statWater.innerText = s.water.toFixed(1);
-            statNotes.innerText = s.notesCount;
-            statSport.innerText = s.sport;
-            statReading.innerText = s.reading;
+    function renderCalendar() {
+        calendarWeek.innerHTML = '';
+        const today = new Date();
+        
+        // Генерируем 7 последних дней
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            const dateString = formatDate(d);
+            
+            const div = document.createElement('div');
+            div.className = `cal-day ${dateString === selectedDateStr ? 'selected' : ''}`;
+            div.innerHTML = `<span>${getShortDayName(d)}</span><span class="date-num">${d.getDate()}</span>`;
+            
+            div.addEventListener('click', () => {
+                selectedDateStr = dateString;
+                renderCalendar();
+                renderStatsForDay(selectedDateStr);
+            });
+            calendarWeek.appendChild(div);
         }
     }
 
-    function renderStatsNotes() {
-        const filtered = notes.filter(n => n.date === selectedDay);
-        statsNotesContainer.innerHTML = filtered.map(n => `
-            <div class="day-note-card">
-                <div class="delete-note" style="top:8px; right:8px;" onclick="deleteNote(${n.id})">✕</div>
-                <div>${n.text}</div>
-            </div>
-        `).join('');
-    }
+    function renderStatsForDay(dateStr) {
+        document.getElementById('selectedDayTitle').innerText = `Прогресс за ${dateStr}`;
+        const dayData = appData.history[dateStr] || {};
+        
+        statsGrid.innerHTML = '';
+        progressContainer.innerHTML = '';
 
-    calendarDays.forEach(day => {
-        day.addEventListener('click', () => {
-            calendarDays.forEach(d => d.classList.remove('selected'));
-            day.classList.add('selected');
-            selectedDayName = day.dataset.day;
-            selectedDay = (16 + parseInt(day.dataset.index)) + '.02.2026';
-            selectedDayTitle.innerText = `Заметки за день ${selectedDay}`;
-            renderStatsNotes();
-            updateStatsForSelectedDay();
+        appData.habits.forEach(habit => {
+            const val = dayData[habit.id] || 0;
+            const percent = Math.min((val / habit.goal) * 100, 100);
+            const isSuccess = val >= habit.goal;
+
+            // 1. Карточки сверху
+            statsGrid.innerHTML += `
+                <div class="stat-card card-bg">
+                    <div class="stat-number">${val}</div>
+                    <div class="stat-label">${habit.name}</div>
+                </div>
+            `;
+
+            // 2. Визуализация прогресса барами (С начальной шириной 0%)
+            progressContainer.innerHTML += `
+                <div class="progress-item card-bg">
+                    <div class="progress-header">
+                        <span>${habit.emoji} ${habit.name}</span>
+                        <span style="color: var(--text-muted)">${val} / ${habit.goal} ${habit.unit}</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill ${isSuccess ? 'success' : ''}" id="prog_${habit.id}"></div>
+                    </div>
+                </div>
+            `;
+
+            // Запускаем анимацию заполнения после рендера (Wow effect)
+            setTimeout(() => {
+                const bar = document.getElementById(`prog_${habit.id}`);
+                if (bar) bar.style.width = `${percent}%`;
+            }, 50);
         });
-    });
 
-    addStatsNoteBtn.addEventListener('click', () => {
-        if (!statsNoteInput.value) return;
-        notes.push({ id: Date.now(), title: 'Заметка', text: statsNoteInput.value, date: selectedDay });
-        statsNoteInput.value = '';
-        renderStatsNotes();
-        updateStatsForSelectedDay();
-    });
-
-    // ----- Навигация -----
-    function showScreen(id) {
-        screens.forEach(s => s.classList.remove('active'));
-        document.getElementById(id + '-screen').classList.add('active');
-        navItems.forEach(nav => nav.classList.toggle('active', nav.dataset.screen === id));
-        if (id === 'notes') renderNotes();
-        if (id === 'habits') renderHabits();
-        if (id === 'stats') { renderStatsNotes(); updateStatsForSelectedDay(); }
+        // 3. Заметки за этот день
+        const dayNotes = appData.notes.filter(n => n.date === dateStr);
+        statsNotesContainer.innerHTML = dayNotes.length ? '' : '<p style="opacity:0.4; font-size: 15px; font-weight: 500; text-align:center; padding: 20px;">Пока нет записей</p>';
+        
+        dayNotes.forEach(note => {
+            statsNotesContainer.innerHTML += `
+                <div class="day-note-card">
+                    <div class="delete-btn" style="top:15px; right:15px;" onclick="deleteNoteFromStats(${note.id})">✕</div>
+                    <div style="font-weight:700; margin-bottom:8px; font-size: 18px;">${note.title}</div>
+                    <div style="color: var(--text-muted); line-height: 1.5;">${note.text}</div>
+                </div>
+            `;
+        });
     }
 
-    navItems.forEach(item => item.addEventListener('click', () => showScreen(item.dataset.screen)));
+    // Чтобы крестик на заметках в статистике работал
+    window.deleteNoteFromStats = function(id) {
+        appData.notes = appData.notes.filter(n => n.id !== id);
+        saveData();
+        renderStatsForDay(selectedDateStr); // Перерисовываем день
+        if(document.getElementById('notes-screen').classList.contains('active')) renderNotes();
+    }
 
-    // Init
-    updateProfileDisplay();
-    renderNotes();
+    // Быстрая заметка в статистике
+    document.getElementById('addStatsNoteBtn').addEventListener('click', () => {
+        const text = document.getElementById('statsNoteInput').value.trim();
+        if (!text) return;
+        
+        appData.notes.unshift({ id: Date.now(), title: 'Быстрая запись', text, date: selectedDateStr });
+        saveData();
+        document.getElementById('statsNoteInput').value = '';
+        renderStatsForDay(selectedDateStr);
+    });
+
+    // Первый рендер
     renderHabits();
-    calendarDays[0].click();
-})();
+});

@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOBI — супер-стиль</title>
+    <title>MOBI — Трекер привычек</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-theme">
     <div id="app">
         <input type="file" id="photoInput" accept="image/*">
         
+        <!-- ПРОФИЛЬ -->
         <div class="screen active" id="profile-screen">
             <div class="profile-photo-section">
                 <div class="profile-photo" id="profilePhoto">
@@ -21,93 +22,97 @@
             <div class="info-block">
                 <div class="info-item">
                     <div class="info-label">ИМЯ</div>
-                    <div class="info-value" id="nameDisplay">Иван Петров</div>
-                    <input type="text" id="nameInput" class="info-input" value="Иван Петров" style="display:none;">
+                    <div class="info-value" id="nameDisplay"></div>
+                    <input type="text" id="nameInput" class="info-input" style="display:none;">
                 </div>
                 <div class="info-item">
                     <div class="info-label">О СЕБЕ</div>
-                    <div class="info-value" id="aboutDisplay">Типа программист</div>
-                    <input type="text" id="aboutInput" class="info-input" value="Типа программист" style="display:none;">
+                    <div class="info-value" id="aboutDisplay"></div>
+                    <input type="text" id="aboutInput" class="info-input" style="display:none;">
                 </div>
                 <div class="info-item">
                     <div class="info-label">ДЕНЬ РОЖДЕНИЯ</div>
-                    <div class="info-value" id="birthDisplay">30.03.1933</div>
-                    <input type="text" id="birthInput" class="info-input" value="30.03.1933" style="display:none;">
+                    <div class="info-value" id="birthDisplay"></div>
+                    <input type="text" id="birthInput" class="info-input" style="display:none;">
                 </div>
             </div>
-            <button class="theme-toggle" id="themeToggleBtn">🌙 Тёмная тема</button>
+            <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
             <button class="action-button" id="editProfileBtn">Редактировать</button>
             <button class="action-button" id="saveProfileBtn" style="display:none; background: linear-gradient(145deg, #28a745, #1e7b34);">Сохранить</button>
         </div>
 
+        <!-- ЗАМЕТКИ -->
         <div class="screen" id="notes-screen">
             <div class="notes-header">
-                <h2>Заметки</h2>
+                <h2>Все Заметки</h2>
                 <button class="add-note-btn" id="showAddNoteBtn">+</button>
             </div>
-            <div id="notesContainer"></div>
+            
             <div class="add-note-form" id="addNoteForm">
                 <input type="text" id="noteTitle" placeholder="Заголовок">
                 <textarea id="noteText" placeholder="Текст заметки..."></textarea>
-                <button class="save-note-btn" id="saveNoteBtn">Добавить заметку</button>
+                <button class="save-note-btn action-button" id="saveNoteBtn">Добавить заметку</button>
+                <button class="cancel-btn" id="cancelNoteBtn">Отмена</button>
             </div>
+
+            <div id="notesContainer"></div>
         </div>
 
+        <!-- ПРИВЫЧКИ (СЕГОДНЯ) -->
         <div class="screen" id="habits-screen">
             <div class="habits-date">Сегодня</div>
-            <div class="habits-sub">18 февраля</div>
+            <div class="habits-sub" id="todayDateDisplay">--</div>
 
             <div id="habitsContainer"></div>
 
             <div class="add-habit-card" id="showAddHabitBtn">
-                <span>+</span> Новая привычка
+                <span>+</span> Новая цель
             </div>
 
             <div class="add-habit-form" id="addHabitForm">
-                <input type="text" id="habitName" placeholder="Название (например: Кофе)">
-                <input type="text" id="habitUnit" placeholder="Единица (л, мин, шт, км)" value="л">
-                <input type="number" id="habitDefaultValue" value="1" step="0.1">
-                <button class="save-note-btn" id="saveHabitBtn">Добавить привычку</button>
+                <input type="text" id="habitName" placeholder="Название (например: Медитация)">
+                <input type="text" id="habitEmoji" placeholder="Эмодзи (например: 🧘‍♂️)">
+                <input type="text" id="habitUnit" placeholder="Единица (л, мин, шт)" value="мин">
+                <input type="number" id="habitGoal" placeholder="Цель за день (число)" value="15">
+                <button class="save-note-btn action-button" id="saveHabitBtn">Добавить</button>
+                <button class="cancel-btn" id="cancelHabitBtn">Отмена</button>
             </div>
-
-            <button class="save-progress-btn" id="saveProgressBtn">Сохранить прогресс</button>
         </div>
 
+        <!-- СТАТИСТИКА И ПРОГРЕСС -->
         <div class="screen" id="stats-screen">
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card"><div class="stat-number" id="statStreak">0</div><div class="stat-label">дней подряд</div></div>
-                <div class="stat-card"><div class="stat-number" id="statWater">0.5</div><div class="stat-label">л всего воды</div></div>
-                <div class="stat-card"><div class="stat-number" id="statNotes">1</div><div class="stat-label">заметок</div></div>
-                <div class="stat-card"><div class="stat-number" id="statSport">10</div><div class="stat-label">МИН спорта</div></div>
-                <div class="stat-card"><div class="stat-number" id="statReading">1</div><div class="stat-label">МИН чтения</div></div>
-                <div class="stat-card"><div class="stat-number" id="statActions">3</div><div class="stat-label">всего действий</div></div>
-            </div>
-
+            <div class="section-title">Календарь (последние 7 дней)</div>
             <div class="calendar-week" id="calendarWeek">
-                <span class="cal-day" data-day="Пн" data-index="0">Пн</span>
-                <span class="cal-day" data-day="Вт" data-index="1">Вт</span>
-                <span class="cal-day" data-day="Ср" data-index="2">Ср</span>
-                <span class="cal-day" data-day="Чт" data-index="3">Чт</span>
-                <span class="cal-day" data-day="Пт" data-index="4">Пт</span>
-                <span class="cal-day" data-day="Сб" data-index="5">Сб</span>
-                <span class="cal-day" data-day="Вс" data-index="6">Вс</span>
+                <!-- Дни генерируются через JS -->
             </div>
 
-            <div class="section-title" id="selectedDayTitle">Заметки за день 16.02.2026</div>
-            <div id="statsNotesContainer"></div>
+            <div class="section-title" id="selectedDayTitle">Прогресс за день</div>
+            
+            <div class="stats-grid" id="statsGrid">
+                <!-- Карточки генерируются динамически -->
+            </div>
 
+            <div class="section-title">Выполнение целей</div>
+            <div id="progressContainer">
+                <!-- Прогресс-бары генерируются динамически -->
+            </div>
+
+            <div class="section-title" style="margin-top: 20px;">Заметки за этот день</div>
+            <div id="statsNotesContainer"></div>
+            
             <div class="stats-add-note">
-                <input type="text" id="statsNoteInput" placeholder="Новая заметка за этот день...">
+                <input type="text" id="statsNoteInput" placeholder="Быстрая заметка...">
                 <button id="addStatsNoteBtn">+</button>
             </div>
-            <div class="visit-site">Посетите сайт</div>
         </div>
 
+        <!-- НАВИГАЦИЯ -->
+        <!-- НАВИГАЦИЯ -->
         <div class="bottom-nav">
-            <div class="nav-item active" data-screen="profile"><span>👤</span>Профиль</div>
-            <div class="nav-item" data-screen="notes"><span>📝</span>Заметки</div>
-            <div class="nav-item" data-screen="habits"><span>✅</span>Привычки</div>
-            <div class="nav-item" data-screen="stats"><span>📊</span>Статистика</div>
+            <div class="nav-item active" data-screen="profile"><span>😎</span>Профиль</div>
+            <div class="nav-item" data-screen="notes"><span>📒</span>Заметки</div>
+            <div class="nav-item" data-screen="habits"><span>🔥</span>Цели</div>
+            <div class="nav-item" data-screen="stats"><span>📈</span>Прогресс</div>
         </div>
     </div>
 
